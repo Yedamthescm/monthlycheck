@@ -396,6 +396,15 @@
                         rows.push({ seller, month, qty, unitPrice, currency, item, salesDoc });
                     }
 
+                    // 동일 판매문서 번호가 있으면 해당 행만 업데이트
+                    const newSalesDocs = new Set(rows.filter(r => r.salesDoc).map(r => r.salesDoc));
+                    if (newSalesDocs.size > 0) {
+                        for (const existingFile of allData) {
+                            existingFile.rows = existingFile.rows.filter(r => !newSalesDocs.has(r.salesDoc));
+                        }
+                        // 빈 파일 제거
+                        allData = allData.filter(f => f.rows.length > 0);
+                    }
                     allData.push({ fileName: file.name, rows });
                     localStorage.setItem('monthlycheck_data', JSON.stringify(allData));
                     render();

@@ -233,7 +233,7 @@
         const fileTagsDiv = document.getElementById('fileTags');
         const resultsDiv = document.getElementById('results');
 
-        let allData = []; // { fileName, rows: [{seller, month, qty, price, currency, item}] }
+        let allData = JSON.parse(localStorage.getItem('monthlycheck_data') || '[]');
 
         uploadArea.addEventListener('click', () => fileInput.click());
         uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
@@ -245,6 +245,7 @@
         });
         fileInput.addEventListener('change', e => handleFiles(e.target.files));
         document.getElementById('exchangeRate').addEventListener('change', render);
+        render(); // 저장된 데이터 표시
 
         function handleFiles(files) {
             for (const file of files) {
@@ -287,6 +288,7 @@
                     }
 
                     allData.push({ fileName: file.name, rows });
+                    localStorage.setItem('monthlycheck_data', JSON.stringify(allData));
                     render();
                 };
                 reader.readAsArrayBuffer(file);
@@ -295,6 +297,7 @@
 
         function removeFile(idx) {
             allData.splice(idx, 1);
+            localStorage.setItem('monthlycheck_data', JSON.stringify(allData));
             render();
         }
 

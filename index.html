@@ -211,6 +211,25 @@
             outline: none;
             border-color: #4a90d9;
         }
+        .save-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #4a90d9;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        .save-btn:hover { background: #357abd; }
+        .save-btn:active { background: #2a5f9e; }
+        .save-btn.saved {
+            background: #27ae60;
+        }
         .code-list {
             background: #fff;
             border-radius: 8px;
@@ -241,6 +260,8 @@
     <div class="container">
         <h1>매출 자동 계산기</h1>
         <p class="subtitle">엑셀 파일을 업로드하면 판매처별 / 월별 매출을 자동 계산합니다</p>
+
+        <button class="save-btn" onclick="saveAllMemos()">메모 저장</button>
 
         <div class="code-list">
             <table class="code-table">
@@ -293,7 +314,23 @@
             } else {
                 delete memos[key];
             }
+        }
+
+        function saveAllMemos() {
+            document.querySelectorAll('.memo-input').forEach(input => {
+                const key = input.dataset.memoKey;
+                const value = input.value;
+                if (value.trim()) {
+                    memos[key] = value;
+                } else {
+                    delete memos[key];
+                }
+            });
             localStorage.setItem('monthlycheck_memos', JSON.stringify(memos));
+            const btn = document.querySelector('.save-btn');
+            btn.textContent = '저장 완료!';
+            btn.classList.add('saved');
+            setTimeout(() => { btn.textContent = '메모 저장'; btn.classList.remove('saved'); }, 1500);
         }
 
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -470,7 +507,7 @@
                             <td>${d.unitPrice.toLocaleString()}</td>
                             <td>${d.currency}</td>
                             <td style="text-align:right;">${formatKRW(d.amount)}</td>
-                            <td><input type="text" class="memo-input" value="${memoVal.replace(/"/g, '&quot;')}" onchange="saveMemo('${memoKey.replace(/'/g, "\\'")}', this.value)"></td>
+                            <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
                         </tr>`;
                     }
                     html += `</tbody></table></td></tr>`;

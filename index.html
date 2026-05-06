@@ -199,6 +199,18 @@
             border-bottom: 1px solid #f0f0f0;
             font-size: 12px;
         }
+        .memo-input {
+            width: 100%;
+            min-width: 80px;
+            padding: 3px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .memo-input:focus {
+            outline: none;
+            border-color: #4a90d9;
+        }
     </style>
 </head>
 <body>
@@ -234,6 +246,16 @@
         const resultsDiv = document.getElementById('results');
 
         let allData = JSON.parse(localStorage.getItem('monthlycheck_data') || '[]');
+        let memos = JSON.parse(localStorage.getItem('monthlycheck_memos') || '{}');
+
+        function saveMemo(key, value) {
+            if (value.trim()) {
+                memos[key] = value;
+            } else {
+                delete memos[key];
+            }
+            localStorage.setItem('monthlycheck_memos', JSON.stringify(memos));
+        }
 
         uploadArea.addEventListener('click', () => fileInput.click());
         uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
@@ -385,15 +407,18 @@
                     </tr>
                     <tr><td colspan="3" style="padding:0;">
                         <table class="detail-table" id="${detailId}">
-                            <thead><tr><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th></tr></thead>
+                            <thead><tr><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th><th>메모</th></tr></thead>
                             <tbody>`;
                     for (const d of monthData[m].details) {
+                        const memoKey = `memo_${seller}_${m}_${d.item}_${d.qty}_${d.unitPrice}`;
+                        const memoVal = memos[memoKey] || '';
                         html += `<tr>
                             <td>${d.item}</td>
                             <td>${d.qty.toLocaleString()}</td>
                             <td>${d.unitPrice.toLocaleString()}</td>
                             <td>${d.currency}</td>
                             <td style="text-align:right;">${formatKRW(d.amount)}</td>
+                            <td><input type="text" class="memo-input" value="${memoVal.replace(/"/g, '&quot;')}" onchange="saveMemo('${memoKey.replace(/'/g, "\\'")}', this.value)"></td>
                         </tr>`;
                     }
                     html += `</tbody></table></td></tr>`;

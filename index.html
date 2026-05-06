@@ -279,14 +279,23 @@
                     const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
                     const rows = [];
+                    // 헤더에서 컬럼 위치 자동 인식
+                    const header = json[0].map(h => (h || '').toString().trim());
+                    const colSeller = header.indexOf('판매처이름');
+                    const colQty = header.indexOf('총오더수량');
+                    const colDate = header.indexOf('목표매출일');
+                    const colCurrency = header.indexOf('전표 통화');
+                    const colPrice = header.indexOf('단가');
+                    const colItem = header.indexOf('내역');
+
                     for (let i = 1; i < json.length; i++) {
                         const row = json[i];
-                        const seller = (row[3] || '').toString().trim(); // D열 (index 3)
-                        const qty = parseFloat(row[9]) || 0;            // J열 (index 9)
-                        const targetDate = row[15];                      // P열 (index 15)
-                        const currency = (row[18] || '').toString().trim().toUpperCase(); // S열 (index 18)
-                        const unitPrice = parseFloat(row[19]) || 0;     // T열 (index 19)
-                        const item = (row[8] || '').toString().trim();  // I열 - 내역
+                        const seller = (row[colSeller >= 0 ? colSeller : 3] || '').toString().trim();
+                        const qty = parseFloat(row[colQty >= 0 ? colQty : 9]) || 0;
+                        const targetDate = row[colDate >= 0 ? colDate : 15];
+                        const currency = (row[colCurrency >= 0 ? colCurrency : 18] || '').toString().trim().toUpperCase();
+                        const unitPrice = parseFloat(row[colPrice >= 0 ? colPrice : 19]) || 0;
+                        const item = (row[colItem >= 0 ? colItem : 8] || '').toString().trim();
 
                         if (!seller || !targetDate) continue;
 

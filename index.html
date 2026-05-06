@@ -326,6 +326,7 @@
                     const colCurrency = header.indexOf('전표 통화');
                     const colPrice = header.indexOf('단가');
                     const colItem = header.indexOf('내역');
+                    const colSalesDoc = header.indexOf('판매 문서');
 
                     for (let i = 1; i < json.length; i++) {
                         const row = json[i];
@@ -335,6 +336,7 @@
                         const currency = (row[colCurrency >= 0 ? colCurrency : 18] || '').toString().trim().toUpperCase();
                         const unitPrice = parseFloat(row[colPrice >= 0 ? colPrice : 19]) || 0;
                         const item = (row[colItem >= 0 ? colItem : 8] || '').toString().trim();
+                        const salesDoc = (row[colSalesDoc >= 0 ? colSalesDoc : 5] || '').toString().trim();
 
                         if (!seller || !targetDate) continue;
 
@@ -354,7 +356,7 @@
                             continue;
                         }
 
-                        rows.push({ seller, month, qty, unitPrice, currency, item });
+                        rows.push({ seller, month, qty, unitPrice, currency, item, salesDoc });
                     }
 
                     allData.push({ fileName: file.name, rows });
@@ -420,6 +422,7 @@
                         qty: r.qty,
                         unitPrice: r.unitPrice,
                         currency: r.currency,
+                        salesDoc: r.salesDoc || '',
                         amount: amount
                     });
                 }
@@ -455,12 +458,13 @@
                     </tr>
                     <tr><td colspan="3" style="padding:0;">
                         <table class="detail-table" id="${detailId}">
-                            <thead><tr><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th><th>메모</th></tr></thead>
+                            <thead><tr><th>판매문서</th><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th><th>메모</th></tr></thead>
                             <tbody>`;
                     for (const d of monthData[m].details) {
                         const memoKey = `memo_${seller}_${m}_${d.item}_${d.qty}_${d.unitPrice}`;
                         const memoVal = memos[memoKey] || '';
                         html += `<tr>
+                            <td>${d.salesDoc}</td>
                             <td>${d.item}</td>
                             <td>${d.qty.toLocaleString()}</td>
                             <td>${d.unitPrice.toLocaleString()}</td>

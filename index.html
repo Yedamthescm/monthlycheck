@@ -211,12 +211,51 @@
             outline: none;
             border-color: #4a90d9;
         }
+        .code-list {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .code-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .code-table th {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 13px;
+            color: #666;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .code-table td {
+            padding: 6px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>매출 자동 계산기</h1>
         <p class="subtitle">엑셀 파일을 업로드하면 판매처별 / 월별 매출을 자동 계산합니다</p>
+
+        <div class="code-list">
+            <table class="code-table">
+                <thead><tr><th>판매처</th><th>코드</th></tr></thead>
+                <tbody>
+                    <tr><td>멜라루카 중국</td><td>6400</td></tr>
+                    <tr><td>멜라루카 대만</td><td>101124</td></tr>
+                    <tr><td>뉴스킨</td><td>101280</td></tr>
+                    <tr><td>아워글래스</td><td>107028</td></tr>
+                    <tr><td>켄뷰 ODM</td><td>101109</td></tr>
+                    <tr><td>켄뷰 OEM</td><td>100054</td></tr>
+                    <tr><td>네오스트라타</td><td>102079</td></tr>
+                </tbody>
+            </table>
+        </div>
 
         <div class="exchange-rate">
             <label>USD 환율:</label>

@@ -541,8 +541,8 @@
                         html += `<tr id="${rowId}">
                             <td>${d.salesDoc}</td>
                             <td>${d.item}</td>
-                            <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}"></td>
-                            <td><input type="number" class="qty-input" id="price_${rowId}" value="${d.unitPrice}" disabled style="width:90px;"></td>
+                            <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}" data-currency="${d.currency}" oninput="calcAmount('${rowId}')"></td>
+                            <td><input type="number" class="qty-input" id="price_${rowId}" value="${d.unitPrice}" disabled style="width:90px;" oninput="calcAmount('${rowId}')"></td>
                             <td>${d.currency}</td>
                             <td style="text-align:right;"><input type="number" class="qty-input amount-input" id="amt_${rowId}" value="${Math.round(d.amount)}" disabled style="width:110px;" data-seller-id="${sellerId}" data-month="${m}" oninput="updateTotalsLive()"></td>
                             <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
@@ -632,6 +632,17 @@
                 });
             }
         }
+        function calcAmount(rowId) {
+            const qty = parseFloat(document.getElementById('qty_' + rowId).value) || 0;
+            const price = parseFloat(document.getElementById('price_' + rowId).value) || 0;
+            const currency = document.getElementById('qty_' + rowId).dataset.currency;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1419;
+            let amt = qty * price;
+            if (currency === 'USD') amt *= exchangeRate;
+            document.getElementById('amt_' + rowId).value = Math.round(amt);
+            updateTotalsLive();
+        }
+
         function updateTotalsLive() {
             // Collect all amount inputs grouped by sellerId and month
             const sellerMonths = {};

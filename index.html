@@ -211,6 +211,33 @@
             outline: none;
             border-color: #4a90d9;
         }
+        .qty-input {
+            width: 70px;
+            padding: 3px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: right;
+        }
+        .qty-input:focus {
+            outline: none;
+            border-color: #4a90d9;
+        }
+        .qty-input:disabled {
+            background: transparent;
+            border-color: transparent;
+        }
+        .row-edit-btn {
+            padding: 3px 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .row-edit-btn:hover { background: #e9ecef; }
+        .row-edit-btn.saving { background: #d4edda; border-color: #28a745; }
         .save-btn {
             display: block;
             width: 100%;
@@ -504,19 +531,22 @@
                     </tr>
                     <tr><td colspan="3" style="padding:0;">
                         <table class="detail-table" id="${detailId}">
-                            <thead><tr><th>판매문서</th><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th><th>메모</th></tr></thead>
+                            <thead><tr><th>판매문서</th><th>내역</th><th>수량</th><th>단가</th><th>통화</th><th style="text-align:right;">금액 (KRW)</th><th>메모</th><th></th></tr></thead>
                             <tbody>`;
-                    for (const d of monthData[m].details) {
+                    for (let di = 0; di < monthData[m].details.length; di++) {
+                        const d = monthData[m].details[di];
                         const memoKey = `memo_${seller}_${m}_${d.item}_${d.qty}_${d.unitPrice}`;
                         const memoVal = memos[memoKey] || '';
-                        html += `<tr>
+                        const rowId = `row_${sellerId}_${m}_${di}`;
+                        html += `<tr id="${rowId}">
                             <td>${d.salesDoc}</td>
                             <td>${d.item}</td>
-                            <td>${d.qty.toLocaleString()}</td>
+                            <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}"></td>
                             <td>${d.unitPrice.toLocaleString()}</td>
                             <td>${d.currency}</td>
                             <td style="text-align:right;">${formatKRW(d.amount)}</td>
                             <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
+                            <td><button class="row-edit-btn" onclick="toggleRowEdit('${rowId}')">수정</button></td>
                         </tr>`;
                     }
                     html += `</tbody></table></td></tr>`;
@@ -537,6 +567,42 @@
             </div>`;
 
             resultsDiv.innerHTML = grandHtml + html;
+        }
+
+        function toggleRowEdit(rowId) {
+            const qtyInput = document.getElementById('qty_' + rowId);
+            const btn = document.querySelector(`#${rowId} .row-edit-btn`);
+
+            if (qtyInput.disabled) {
+                // Enter edit mode
+                qtyInput.disabled = false;
+                qtyInput.focus();
+                btn.textContent = '저장';
+                btn.classList.add('saving');
+            } else {
+                // Save mode
+                const newQty = parseFloat(qtyInput.value) || 0;
+                const seller = qtyInput.dataset.seller;
+                const salesDoc = qtyInput.dataset.salesdoc;
+                const item = qtyInput.dataset.item;
+                const unitPrice = parseFloat(qtyInput.dataset.unitPrice);
+
+                // Update allData
+                for (const file of allData) {
+                    for (const row of file.rows) {
+                        if (row.seller === seller && row.salesDoc === salesDoc && row.item === item && row.unitPrice === unitPrice) {
+                            row.qty = newQty;
+                            break;
+                        }
+                    }
+                }
+                localStorage.setItem('monthlycheck_data', JSON.stringify(allData));
+
+                qtyInput.disabled = true;
+                btn.textContent = '수정';
+                btn.classList.remove('saving');
+                render();
+            }
         }
     </script>
 </body>

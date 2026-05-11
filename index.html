@@ -542,7 +542,7 @@
                             <td>${d.salesDoc}</td>
                             <td>${d.item}</td>
                             <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}"></td>
-                            <td>${d.unitPrice.toLocaleString()}</td>
+                            <td><input type="number" class="qty-input" id="price_${rowId}" value="${d.unitPrice}" disabled style="width:90px;"></td>
                             <td>${d.currency}</td>
                             <td style="text-align:right;"><input type="number" class="qty-input amount-input" id="amt_${rowId}" value="${Math.round(d.amount)}" disabled style="width:110px;" data-seller-id="${sellerId}" data-month="${m}" oninput="updateTotalsLive()"></td>
                             <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
@@ -571,12 +571,14 @@
 
         function toggleRowEdit(rowId) {
             const qtyInput = document.getElementById('qty_' + rowId);
+            const priceInput = document.getElementById('price_' + rowId);
             const amtInput = document.getElementById('amt_' + rowId);
             const btn = document.querySelector(`#${rowId} .row-edit-btn`);
 
             if (qtyInput.disabled) {
                 // Enter edit mode
                 qtyInput.disabled = false;
+                priceInput.disabled = false;
                 amtInput.disabled = false;
                 qtyInput.focus();
                 btn.textContent = '저장';
@@ -584,23 +586,19 @@
             } else {
                 // Save mode
                 const newQty = parseFloat(qtyInput.value) || 0;
+                const newPrice = parseFloat(priceInput.value) || 0;
                 const newAmt = parseFloat(amtInput.value) || 0;
                 const seller = qtyInput.dataset.seller;
                 const salesDoc = qtyInput.dataset.salesdoc;
                 const item = qtyInput.dataset.item;
                 const unitPrice = parseFloat(qtyInput.dataset.unitPrice);
-                const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1419;
 
                 // Update allData
                 for (const file of allData) {
                     for (const row of file.rows) {
                         if (row.seller === seller && row.salesDoc === salesDoc && row.item === item && row.unitPrice === unitPrice) {
                             row.qty = newQty;
-                            // Reverse-calculate unitPrice from the edited amount
-                            if (newQty !== 0) {
-                                const divisor = row.currency === 'USD' ? exchangeRate : 1;
-                                row.unitPrice = newAmt / (newQty * divisor);
-                            }
+                            row.unitPrice = newPrice;
                             break;
                         }
                     }
@@ -621,6 +619,7 @@
                 document.querySelectorAll('.detail-table.show').forEach(t => openDetails.push(t.id));
 
                 qtyInput.disabled = true;
+                priceInput.disabled = true;
                 amtInput.disabled = true;
                 btn.textContent = '수정';
                 btn.classList.remove('saving');

@@ -510,7 +510,7 @@
                 html += `<div class="seller-card">
                     <div class="seller-header">
                         <span>${seller}</span>
-                        <span class="seller-total">합계: ${formatKRW(sellerTotal)}</span>
+                        <span class="seller-total" id="seller_total_${sellerId}">합계: ${formatKRW(sellerTotal)}</span>
                     </div>
                     <table class="month-table">
                         <thead>
@@ -526,7 +526,7 @@
                     const detailId = `detail_${sellerId}_${m}`;
                     html += `<tr>
                         <td>${m}월</td>
-                        <td class="amount">${formatKRW(monthData[m].total)}</td>
+                        <td class="amount" id="month_total_${sellerId}_${m}">${formatKRW(monthData[m].total)}</td>
                         <td><button class="detail-toggle" style="color:#333;border-color:#ccc;" onclick="document.getElementById('${detailId}').classList.toggle('show')">상세</button></td>
                     </tr>
                     <tr><td colspan="3" style="padding:0;">
@@ -544,7 +544,7 @@
                             <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}"></td>
                             <td>${d.unitPrice.toLocaleString()}</td>
                             <td>${d.currency}</td>
-                            <td style="text-align:right;"><input type="number" class="qty-input amount-input" id="amt_${rowId}" value="${Math.round(d.amount)}" disabled style="width:110px;"></td>
+                            <td style="text-align:right;"><input type="number" class="qty-input amount-input" id="amt_${rowId}" value="${Math.round(d.amount)}" disabled style="width:110px;" data-seller-id="${sellerId}" data-month="${m}" oninput="updateTotalsLive()"></td>
                             <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
                             <td><button class="row-edit-btn" onclick="toggleRowEdit('${rowId}')">수정</button></td>
                         </tr>`;
@@ -554,7 +554,7 @@
 
                 html += `<tr class="total-row">
                         <td>합계</td>
-                        <td class="amount">${formatKRW(sellerTotal)}</td>
+                        <td class="amount" id="seller_sum_${sellerId}">${formatKRW(sellerTotal)}</td>
                         <td></td>
                     </tr>
                     </tbody></table></div>`;
@@ -563,7 +563,7 @@
             // Grand total card at the top
             const grandHtml = `<div class="grand-total-card">
                 <h2>전체 매출 합계</h2>
-                <div class="amount">${formatKRW(grandTotal)}</div>
+                <div class="amount" id="grand_total">${formatKRW(grandTotal)}</div>
             </div>`;
 
             resultsDiv.innerHTML = grandHtml + html;
@@ -632,6 +632,35 @@
                     if (el) el.classList.add('show');
                 });
             }
+        }
+        function updateTotalsLive() {
+            // Collect all amount inputs grouped by sellerId and month
+            const sellerMonths = {};
+            document.querySelectorAll('.amount-input').forEach(input => {
+                const sid = input.dataset.sellerId;
+                const m = input.dataset.month;
+                if (!sellerMonths[sid]) sellerMonths[sid] = {};
+                if (!sellerMonths[sid][m]) sellerMonths[sid][m] = 0;
+                sellerMonths[sid][m] += parseFloat(input.value) || 0;
+            });
+
+            let grandTotal = 0;
+            for (const sid in sellerMonths) {
+                let sellerTotal = 0;
+                for (const m in sellerMonths[sid]) {
+                    const monthTotal = sellerMonths[sid][m];
+                    sellerTotal += monthTotal;
+                    const monthEl = document.getElementById(`month_total_${sid}_${m}`);
+                    if (monthEl) monthEl.textContent = formatKRW(monthTotal);
+                }
+                grandTotal += sellerTotal;
+                const sellerTotalEl = document.getElementById(`seller_total_${sid}`);
+                if (sellerTotalEl) sellerTotalEl.textContent = '합계: ' + formatKRW(sellerTotal);
+                const sellerSumEl = document.getElementById(`seller_sum_${sid}`);
+                if (sellerSumEl) sellerSumEl.textContent = formatKRW(sellerTotal);
+            }
+            const grandEl = document.getElementById('grand_total');
+            if (grandEl) grandEl.textContent = formatKRW(grandTotal);
         }
     </script>
 </body>

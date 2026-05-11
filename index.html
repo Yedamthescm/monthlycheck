@@ -616,11 +616,21 @@
                     localStorage.setItem('monthlycheck_memos', JSON.stringify(memos));
                 }
 
+                // Remember which detail tables are open
+                const openDetails = [];
+                document.querySelectorAll('.detail-table.show').forEach(t => openDetails.push(t.id));
+
                 qtyInput.disabled = true;
                 amtInput.disabled = true;
                 btn.textContent = '수정';
                 btn.classList.remove('saving');
                 render();
+
+                // Restore open detail tables
+                openDetails.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('show');
+                });
             }
         }
     </script>

@@ -544,7 +544,7 @@
                             <td><input type="number" class="qty-input" id="qty_${rowId}" value="${d.qty}" disabled data-seller="${seller.replace(/"/g, '&quot;')}" data-salesdoc="${d.salesDoc}" data-item="${d.item.replace(/"/g, '&quot;')}" data-unit-price="${d.unitPrice}"></td>
                             <td>${d.unitPrice.toLocaleString()}</td>
                             <td>${d.currency}</td>
-                            <td style="text-align:right;">${formatKRW(d.amount)}</td>
+                            <td style="text-align:right;"><input type="number" class="qty-input amount-input" id="amt_${rowId}" value="${Math.round(d.amount)}" disabled style="width:110px;"></td>
                             <td><input type="text" class="memo-input" data-memo-key="${memoKey.replace(/"/g, '&quot;')}" value="${memoVal.replace(/"/g, '&quot;')}"></td>
                             <td><button class="row-edit-btn" onclick="toggleRowEdit('${rowId}')">수정</button></td>
                         </tr>`;
@@ -571,34 +571,53 @@
 
         function toggleRowEdit(rowId) {
             const qtyInput = document.getElementById('qty_' + rowId);
+            const amtInput = document.getElementById('amt_' + rowId);
             const btn = document.querySelector(`#${rowId} .row-edit-btn`);
 
             if (qtyInput.disabled) {
                 // Enter edit mode
                 qtyInput.disabled = false;
+                amtInput.disabled = false;
                 qtyInput.focus();
                 btn.textContent = '저장';
                 btn.classList.add('saving');
             } else {
                 // Save mode
                 const newQty = parseFloat(qtyInput.value) || 0;
+                const newAmt = parseFloat(amtInput.value) || 0;
                 const seller = qtyInput.dataset.seller;
                 const salesDoc = qtyInput.dataset.salesdoc;
                 const item = qtyInput.dataset.item;
                 const unitPrice = parseFloat(qtyInput.dataset.unitPrice);
+                const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 1419;
 
                 // Update allData
                 for (const file of allData) {
                     for (const row of file.rows) {
                         if (row.seller === seller && row.salesDoc === salesDoc && row.item === item && row.unitPrice === unitPrice) {
                             row.qty = newQty;
+                            // Reverse-calculate unitPrice from the edited amount
+                            if (newQty !== 0) {
+                                const divisor = row.currency === 'USD' ? exchangeRate : 1;
+                                row.unitPrice = newAmt / (newQty * divisor);
+                            }
                             break;
                         }
                     }
                 }
                 localStorage.setItem('monthlycheck_data', JSON.stringify(allData));
 
+                // Save memo for this row
+                const memoInput = document.querySelector(`#${rowId} .memo-input`);
+                if (memoInput) {
+                    const key = memoInput.dataset.memoKey;
+                    const val = memoInput.value;
+                    if (val.trim()) { memos[key] = val; } else { delete memos[key]; }
+                    localStorage.setItem('monthlycheck_memos', JSON.stringify(memos));
+                }
+
                 qtyInput.disabled = true;
+                amtInput.disabled = true;
                 btn.textContent = '수정';
                 btn.classList.remove('saving');
                 render();
